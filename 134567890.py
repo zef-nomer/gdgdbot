@@ -5,7 +5,7 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
-TOKEN = "NzExODI1NDg0NjE0NDY3NjA0.XsIpJA.ji8O_03Ru6HIjwzVL-jL-sMAZho"
+TOKEN = "t"
 
 bot = commands.Bot(command_prefix=('*'), intents = discord.Intents.all())
 bot.remove_command( 'help' )
