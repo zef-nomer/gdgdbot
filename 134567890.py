@@ -2,10 +2,13 @@ from discord.ext import commands
 from asyncio import sleep
 import discord
 import requests
+import urllib
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
+from urllib.request import urlretrieve
+import os
 
-TOKEN = "t"
+TOKEN = "NzExODI1NDg0NjE0NDY3NjA0.XsIpJA.-IP0W9UB8eL7IIrInaHo0utomLY"
 
 bot = commands.Bot(command_prefix=('*'), intents = discord.Intents.all())
 bot.remove_command( 'help' )
@@ -37,7 +40,7 @@ async def on_ready():
 
 @bot.command()
 async def Hi(ctx):
-    await ctx.send('Hi')
+    await ctx.send('https://i.picsum.photos/id/292/1920/1920.jpg?hmac=hg2sv2VPjgtehlNQm-E76aU-KSUqSwCSXb9IPakV5ZA')
 
 @bot.command()
 async def test1(ctx):
@@ -61,9 +64,9 @@ async def help( ctx ):
     emb = discord.Embed( title = 'Информация по командам(В РАЗРАБОТКЕЕЕЕЕЕ)', colour = discord.Colour.purple() )
 
     emb.add_field ( name = '```{}wiki```'.format ( "*" ), value = "Переход на вики-сайт" )
-    emb.add_field ( name = '{}В разработке'.format ( "*" ), value = "В разработке" )
-    emb.add_field ( name = '{}В разработке'.format ( "*" ), value = "В разработке" )
-    emb.add_field ( name = '{}В разработке'.format ( "*" ), value = "В разработке" )
+    emb.add_field ( name = '```{}'.format ( "*" ), value = "В разработке" )
+    emb.add_field ( name = '```{}В разработке'.format ( "*" ), value = "В разработке" )
+    emb.add_field ( name = '```{}В разработке'.format ( "*" ), value = "В разработке" )
     await ctx.send( embed = emb )
 
 #jopa(сообщения с эмодзи через каждые 20 м)
@@ -123,12 +126,12 @@ async def bag(ctx, msg: str = None):
     await channel.send(f'**Новый репорт бага №{bcount}!** \n `{msg} - необходимо решить проблему.`')
 
 #песенки
-@bot.command(aliases=["s"])
-async def search(ctx, *, zapros=None):
+@bot.command(aliases=["l"])
+async def lyrics(ctx, *, zapros=None):
     if zapros is None:
         await ctx.send("Введите фрагмент песни для поиска")
     else:
-        reponse = requests.get(f"https://pixabay.com/images/search/{zapros}")
+        reponse = requests.get(f"https://some-random-api.ml/lyrics?title={zapros}")
         otv = reponse.json()
         try:
             embed=discord.Embed(title="Genius", url=f"{otv['links']['genius']}", description=otv['lyrics'], color=0x27b201)
@@ -138,5 +141,80 @@ async def search(ctx, *, zapros=None):
             await ctx.send(embed=embed)
         except:
             await ctx.send("Что-то пошло не так...")
+
+#random dog
+@bot.command(aliases=['rd','d'])
+async def rdog(ctx):
+    reponse = requests.get('https://some-random-api.ml/img/dog')
+    otv = reponse.json()
+    try:
+        emb = discord.Embed(title='🐶Собачка🐶', color=discord.Colour.purple())
+        emb.set_image(url = f'{otv["link"]}')
+        await ctx.send(embed = emb)
+    except:
+        await ctx.send('🛑Ошибка🛑')
+
+
+#random image
+@bot.command(aliases=['ri'])
+async def rimage(ctx, size = None, size2 = None):
+    if size is None:
+        emb = discord.Embed(title='🛑Ошибка синтаксиса🛑', description='Правильный синтаксис:\n'
+                                                                       '```*ri размер - если хотите получить квадратную картинку. За место "размер" введите размер картики```\n'
+                                                                       '```*ri размер1 размер2 - если хотите получить не квадратную картинку. За место "размер1" и "размер2" введите рахмер картинки```',
+                            colour=discord.Colour.purple())
+        await ctx.send(embed = emb)
+    elif size2 is None:
+        urlretrieve(f'https://picsum.photos/{size}', 'D:\pypr\one1.jpg')
+        await ctx.send(f'Квадратная картика размером {size}', file = discord.File(r'D:\pypr\one1.jpg') )
+    else:
+        urlretrieve(f'https://picsum.photos/{size}/{size2}', 'D:\pypr\one.jpg')
+        #await ctx.send(file=discord.File(r'D:\pypr\one.jpg'))
+        emb = discord.Embed(title='Картинка', colour = discord.Colour.purple())
+        await ctx.send(f'Картинка размером {size}*{size2}', file=discord.File(r'D:\pypr\one.jpg'))
+
+#clear
+@bot.command(aliases = ['c'])
+async def clear(ctx, amount = 1000):
+    await ctx.channel.purge(limit=amount+1)
+    await ctx.send('Очищенно!', delete_after=15.0)
+
+#sre
+@bot.event
+async def on_member_join(member):
+    role = discord.utils.get(member.guild.roles, name = 'verify')
+    await member.add_roles(role)
+    #channel = client.get_channel(name = "welcome")
+    channel=discord.utils.get(member.guild.channels, name="welcome")
+    url = str(member.avatar_url)[:-10]
+    url = requests.get(url,stream = True)
+    avatar = Image.open(io.BytesIO(url.content))
+    welcome = Image.open('hi.png')
+    welcome = welcome.convert('RGBA')
+    avatar = avatar.convert('RGBA')
+    avatar = avatar.resize((500,500))
+    mask = Image.new('L',(1500,1500),0)
+    draw = ImageDraw.Draw(mask)
+    idraw = ImageDraw.Draw(welcome)
+    name = member.name
+    tag = member.discriminator
+    at = member.created_at
+    headline = ImageFont.truetype('font.ttf', size=70)
+    headline2 = ImageFont.truetype('font.ttf', size=70)
+    idraw.text((900, 750), f'{name}#{tag}',anchor="ms", font=headline, fill='#FFFFFF')
+    idraw.text((900, 950), f'Создан {at}' [:-15],anchor="ms", font=headline2, fill='#FFFFFF')
+    draw.ellipse((0,0) + (1500,1500),fill = 255)
+    mask = mask.resize((500,500))
+    avatar.putalpha(mask)
+    welcome = welcome.resize((1800,1100))
+    welcome.paste(avatar,(650,50),avatar)
+    _buffer = io.BytesIO()
+    welcome.save(_buffer,"png")
+    _buffer.seek(0)
+    await channel.send(file = discord.File(fp = _buffer,filename = f'{member.name}welcome.png'))
+    await channel.send(f"{member.mention} добро пожаловать на сервер {member.guild.name}!")
+    await member.send(file = discord.File(filename = f'{member.name}welcome.png'))
+    await member.send(f"{member.mention} добро пожаловать на сервер {member.guild.name}!")
+
 
 bot.run(TOKEN)
