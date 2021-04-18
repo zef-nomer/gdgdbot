@@ -9,7 +9,7 @@ from urllib.request import urlretrieve
 import os
 import json
 
-TOKEN = "NzExODI1NDg0NjE0NDY3NjA0.XsIpJA.K8hueTwufqqY2WD1TFZs0bL5JXE"
+TOKEN = "NzExODI1NDg0NjE0NDY3NjA0.XsIpJA.8q78hpYWgUeS6jkGTgFt_Eo3NTQ"
 
 bot = commands.Bot(command_prefix=('*'), intents = discord.Intents.all())
 bot.remove_command( 'help' )
@@ -78,6 +78,7 @@ async def say(ctx, *, str = None):
         await ctx.author.send(embed=sayerror)
     embed = discord.Embed(description = str, colour = discord.Colour.purple())
     await ctx.send(embed=embed)
+    await sleep(3)
     await ctx.message.delete()
 
 #rgb основные коды
