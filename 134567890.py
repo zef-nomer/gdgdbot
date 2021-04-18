@@ -7,15 +7,16 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from urllib.request import urlretrieve
 import os
+import json
 
-TOKEN = "NzExODI1NDg0NjE0NDY3NjA0.XsIpJA.-IP0W9UB8eL7IIrInaHo0utomLY"
+TOKEN = "NzExODI1NDg0NjE0NDY3NjA0.XsIpJA.K8hueTwufqqY2WD1TFZs0bL5JXE"
 
 bot = commands.Bot(command_prefix=('*'), intents = discord.Intents.all())
 bot.remove_command( 'help' )
 
 @bot.event
 async def on_member_join(member):
-        channel = bot.get_channel(830719922501582849) #здесь айди канала которому хочешь отправить сообщение
+        channel = bot.get_channel(833053710955184158) #здесь айди канала которому хочешь отправить сообщение
         mjoin = discord.Embed(title=f"Member Join", color=discord.Colour.purple())
         mjoin.set_author(icon_url= f"{member.avatar_url}", name=f"{member.name}")
         mjoin.add_field(name="Пользователь", value=member.mention)
@@ -26,7 +27,7 @@ async def on_member_join(member):
 
 @bot.event
 async def on_ready():
-    print("Я запущен!")
+    print("Я запущен!", os.name)
     #await bot.change_presence(status=discord.Status.dnd, activity=discord.Game(name='NBS😇'))
     #await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="a movie"))
     #await bot.change_presence(status=discord.Status.dnd, activity=discord.Activity(type=discord.ActivityType.listening, name="NBS😇"))
@@ -77,6 +78,7 @@ async def say(ctx, *, str = None):
         await ctx.author.send(embed=sayerror)
     embed = discord.Embed(description = str, colour = discord.Colour.purple())
     await ctx.send(embed=embed)
+    await ctx.message.delete()
 
 #rgb основные коды
 @bot.command()
@@ -116,14 +118,17 @@ async def I(ctx):
 #bag reporter
 bcount = 0
 @bot.command()
-async def bag(ctx, msg: str = None):
+async def bag(ctx, *, str = None):
     global bcount
     bcount += 1
-    await ctx.send(f'Ваш баг - **`{msg}`** - отправлен модерации \nНомер бага за сегодня - {bcount}')
-    channel = bot.get_channel(824717463107141652)
-    report = bot.get_user(595998891934220339)
-    await report.send(f'**Новый репорт бага №{bcount}!** \n `{msg} - необходимо решить проблему.`')
-    await channel.send(f'**Новый репорт бага №{bcount}!** \n `{msg} - необходимо решить проблему.`')
+    if str is None:
+        await ctx.send("Неправильно")
+    else:
+        await ctx.send(f'Ваш баг - **`{str}`** - отправлен модерации \nНомер бага за сегодня - {bcount}')
+        channel = bot.get_channel(824717463107141652)
+        report = bot.get_user(595998891934220339)
+        await report.send(f'**Новый репорт бага №{bcount}!** \n `{str} - необходимо решить проблему.`')
+        await channel.send(f'**Новый репорт бага №{bcount}!** \n `{str} - необходимо решить проблему.`')
 
 #песенки
 @bot.command(aliases=["l"])
@@ -165,56 +170,69 @@ async def rimage(ctx, size = None, size2 = None):
                             colour=discord.Colour.purple())
         await ctx.send(embed = emb)
     elif size2 is None:
-        urlretrieve(f'https://picsum.photos/{size}', 'D:\pypr\one1.jpg')
-        await ctx.send(f'Квадратная картика размером {size}', file = discord.File(r'D:\pypr\one1.jpg') )
-    else:
-        urlretrieve(f'https://picsum.photos/{size}/{size2}', 'D:\pypr\one.jpg')
-        #await ctx.send(file=discord.File(r'D:\pypr\one.jpg'))
-        emb = discord.Embed(title='Картинка', colour = discord.Colour.purple())
-        await ctx.send(f'Картинка размером {size}*{size2}', file=discord.File(r'D:\pypr\one.jpg'))
+        try:
+            urlretrieve(f'https://picsum.photos/{size}', 'one1.jpg')
+            await ctx.send(f'Квадратная картика размером {size}', file = discord.File(r'one1.jpg') )
+        except:
+            eri = discord.Embed(title='🛑Ошибка🛑', description='Попробуйте изменить значения комманды',
+                                 colour=discord.Colour.red())
+            await ctx.send(embed = eri)
+    elif size2 is not None:
+        try:
+            urlretrieve(f'https://picsum.photos/{size}/{size2}', 'one.jpg')
+            emb = discord.Embed(title='Картинка', colour = discord.Colour.purple())
+            await ctx.send(f'Картинка размером {size}*{size2}', file=discord.File(r'one.jpg'))
+        except:
+            eri1 = discord.Embed(title='🛑Ошибка🛑', description='Попробуйте изменить значения комманды', colour=discord.Colour.red())
+            await ctx.send(embed = eri1)
 
 #clear
 @bot.command(aliases = ['c'])
 async def clear(ctx, amount = 1000):
+    cemb = discord.Embed(title='Успешно!', description=f'Очищенно {amount} сообщений!', colour=discord.Colour.green())
+    cemb.set_footer(text=f"{ctx.author.name}", icon_url=ctx.author.avatar_url)
     await ctx.channel.purge(limit=amount+1)
-    await ctx.send('Очищенно!', delete_after=15.0)
+    await ctx.send(embed = cemb, delete_after=15.0)
 
-#sre
-@bot.event
-async def on_member_join(member):
-    role = discord.utils.get(member.guild.roles, name = 'verify')
-    await member.add_roles(role)
-    #channel = client.get_channel(name = "welcome")
-    channel=discord.utils.get(member.guild.channels, name="welcome")
-    url = str(member.avatar_url)[:-10]
-    url = requests.get(url,stream = True)
-    avatar = Image.open(io.BytesIO(url.content))
-    welcome = Image.open('hi.png')
-    welcome = welcome.convert('RGBA')
-    avatar = avatar.convert('RGBA')
-    avatar = avatar.resize((500,500))
-    mask = Image.new('L',(1500,1500),0)
-    draw = ImageDraw.Draw(mask)
-    idraw = ImageDraw.Draw(welcome)
-    name = member.name
-    tag = member.discriminator
-    at = member.created_at
-    headline = ImageFont.truetype('font.ttf', size=70)
-    headline2 = ImageFont.truetype('font.ttf', size=70)
-    idraw.text((900, 750), f'{name}#{tag}',anchor="ms", font=headline, fill='#FFFFFF')
-    idraw.text((900, 950), f'Создан {at}' [:-15],anchor="ms", font=headline2, fill='#FFFFFF')
-    draw.ellipse((0,0) + (1500,1500),fill = 255)
-    mask = mask.resize((500,500))
-    avatar.putalpha(mask)
-    welcome = welcome.resize((1800,1100))
-    welcome.paste(avatar,(650,50),avatar)
-    _buffer = io.BytesIO()
-    welcome.save(_buffer,"png")
-    _buffer.seek(0)
-    await channel.send(file = discord.File(fp = _buffer,filename = f'{member.name}welcome.png'))
-    await channel.send(f"{member.mention} добро пожаловать на сервер {member.guild.name}!")
-    await member.send(file = discord.File(filename = f'{member.name}welcome.png'))
-    await member.send(f"{member.mention} добро пожаловать на сервер {member.guild.name}!")
+#lvl system
+#os.chdir(r'C:\Python1\12344\venv')
+#@bot.event
+#async def on_message(message):
+    #with open('lvl.json','r') as f:
+        #users = json.load(f)
+    #async def update_data(users,user):
+        #if not user in users:
+            #users[user] = {}
+            #users[user]['exp'] = 0
+            #users[user]['lvl'] = 1
+    #async def add_exp(users,user,exp):
+        #users[user]['exp'] += exp
+    #async def add_lvl(users,user):
+        #exp = users[user]['exp']
+        #lvl = users[user]['lvl']
+        #if exp > lvl:
+            #await message.channel.send(f'{message.author.mention} повысил свой уровень!')
+            #users[user]['exp'] = 0
+            #users[user]['lvl'] = lvl + 1
+    #await update_data(users,str(message.author.id))
+    #await add_exp(users,str(message.author.id),1)
+    #await add_lvl(users,str(message.author.id))
+    #with open('lvl.json','w') as f:
+        #json.dump(users,f)
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def role(ctx, member: discord.Member, role: discord.Role):
+    try:
+        getrole = discord.utils.get(ctx.guild.roles, id = role.id)
+        await member.add_roles(getrole)
+    except Exception:
+        await ctx.send(f'Неверное имя пользователя или роль! ({member}, {role})')
+
+@bot.command()
+async def list(ctx, serv = None):
+    memberss = discord.Guild.members
+    await ctx.send(memberss)
 
 
 bot.run(TOKEN)
